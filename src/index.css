@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 1. IMPORT THE LOCAL FONT */
+@font-face {
+  font-family: 'SpiderFont'; /* Naming it something unique */
+  /* This path looks inside src/assets/fonts */
+  src: url('./assets/fonts/spidey.ttf') format('truetype'); 
+  font-weight: normal;
+  font-style: normal;
+}
+
+@layer base {
+  body {
+    background-color: #131416;
+    color: #F0F0F0;
+    overflow-x: hidden;
+  }
+}
+
+@layer utilities {
+  /* 2. APPLY THE FONT */
+  .raimi-text {
+    font-family: 'SpiderFont', sans-serif; /* Use the name we defined above */
+    
+    /* The Metallic Gradient */
+    background: linear-gradient(to bottom, #d1d5db 0%, #ffffff 50%, #9ca3af 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    
+    /* The Cinematic Shadow */
+    filter: drop-shadow(0px 4px 0px rgba(0,0,0,0.5));
+    
+    /* Spacing tweaks for this specific font */
+    letter-spacing: 0.05em;
+    font-style: italic; /* The movie logo is slightly italicized */
+  }
+
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    will-change: transform;
+  }
+}
