@@ -87,6 +87,22 @@ const WebHero = () => {
     spread: 0,
   });
 
+  // --- RESTORED: START SPIDERS IMMEDIATELY ---
+  useGSAP(() => {
+    // 1. Fade them in (so they don't pop)
+    gsap.to([spider1Ref.current, spider2Ref.current, spider3Ref.current], {
+      opacity: 0.6,
+      duration: 1,
+      stagger: 0.2
+    });
+
+    // 2. TRIGGER THE INFINITE LOOP
+    // This was missing in the previous version!
+    scurrySpider(spider1Ref.current);
+    scurrySpider(spider2Ref.current);
+    scurrySpider(spider3Ref.current);
+  }, { scope: containerRef });
+
   // --- RENDER WEB ---
   const renderWeb = () => {
     const startX = window.innerWidth / 2;
@@ -129,7 +145,36 @@ const WebHero = () => {
     }
   };
 
-  // --- START SEQUENCE ---
+  // --- SPIDER AI (Infinite Crawl) ---
+  const scurrySpider = (target) => {
+    if (!target) return;
+    const screenW = window.innerWidth;
+    const screenH = window.innerHeight;
+    
+    // Pick random spot
+    const endX = Math.random() * screenW;
+    const endY = Math.random() * screenH;
+    
+    const currentX = gsap.getProperty(target, "x") || 0;
+    const currentY = gsap.getProperty(target, "y") || 0;
+    const angle = Math.atan2(endY - currentY, endX - currentX) * 180 / Math.PI;
+
+    // Recursive Sequence
+    const tl = gsap.timeline({ onComplete: () => scurrySpider(target) });
+
+    // 1. Rotate
+    tl.to(target, { rotation: angle + 90, duration: 0.4, ease: "back.out(1.2)" });
+    
+    // 2. Run
+    const dist = Math.sqrt(Math.pow(endX - currentX, 2) + Math.pow(endY - currentY, 2));
+    const speed = dist / 200; // Adjust speed here (Lower = Faster)
+    tl.to(target, { x: endX, y: endY, duration: speed, ease: "power1.inOut" });
+    
+    // 3. Pause
+    tl.to(target, { duration: Math.random() * 2 + 0.5 });
+  };
+
+  // --- START BUTTON SEQUENCE ---
   const handleStart = contextSafe(() => {
     const tl = gsap.timeline({
       onUpdate: renderWeb,
@@ -137,28 +182,20 @@ const WebHero = () => {
     });
 
     const screenH = window.innerHeight;
-    const screenW = window.innerWidth;
-
-    // 1. Spiders Scatter
-    gsap.to(spider1Ref.current, { x: screenW + 100, y: screenH * 0.2, rotation: 90, opacity: 0.9, duration: 0.6, ease: "power4.in" });
-    gsap.to(spider2Ref.current, { x: -100, y: screenH * 0.8, rotation: -90, opacity: 0.9, duration: 0.8, ease: "power4.in" });
-    gsap.to(spider3Ref.current, { x: screenW * 0.2, y: screenH + 100, rotation: 180, opacity: 0.9, duration: 0.5, ease: "power4.in" });
-
-    // 2. Web Shoots Down
+    
+    // 1. Web Shoots Down
     tl.to(webState.current, { endY: screenH / 2, controlY: screenH / 4, spread: 0, duration: 0.15, ease: "power1.in" });
     tl.to(webState.current, { spread: 1.8, duration: 0.1, ease: "elastic.out(1, 0.5)" });
 
-    // 3. PULL NAME UP TO HEADER POSITION
+    // 2. Pull Name Up
     const headerY = -screenH / 2 + 100; 
-
     tl.to(initialsRef.current, { y: headerY, scale: 0.6, duration: 0.6, ease: "back.inOut(0.8)" }, "+=0.05");
     tl.to(webState.current, { endY: headerY, controlY: headerY / 2, spread: 0.5, duration: 0.6, ease: "back.inOut(0.8)" }, "<");
   });
 
-  // --- NAVIGATION LOGIC ---
+  // --- NAVIGATION ---
   const handleNavigate = contextSafe((viewId) => {
     if (viewId === 'about') {
-      // 1. Fade out the Home Container
       gsap.to(homeContentRef.current, {
         y: "-100vh",
         opacity: 0,
@@ -240,24 +277,25 @@ const WebHero = () => {
         </g>
       </svg>
 
-      {/* 3. SPIDERS */}
-      <div className="absolute inset-0 pointer-events-none z-40 overflow-hidden">
-        <div ref={spider1Ref} className="absolute top-1/2 left-1/2 w-20 h-20 -ml-10 -mt-10 text-black opacity-50"> <SpiderIcon className="w-full h-full drop-shadow-2xl" /> </div>
-        <div ref={spider2Ref} className="absolute top-1/2 left-1/2 w-24 h-24 -ml-12 -mt-12 text-black opacity-50"> <SpiderIcon className="w-full h-full drop-shadow-2xl" /> </div>
-        <div ref={spider3Ref} className="absolute top-1/2 left-1/2 w-16 h-16 -ml-8 -mt-8 text-black opacity-50"> <SpiderIcon className="w-full h-full drop-shadow-2xl" /> </div>
+      {/* 3. SPIDERS (Z-20 to be visible) */}
+      <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
+        {/* We start opacity-0 here, but useGSAP will fade them in to 0.6 */}
+        <div ref={spider1Ref} className="absolute top-1/2 left-1/2 w-20 h-20 -ml-10 -mt-10 text-black opacity-0"> <SpiderIcon className="w-full h-full drop-shadow-2xl" /> </div>
+        <div ref={spider2Ref} className="absolute top-1/2 left-1/2 w-24 h-24 -ml-12 -mt-12 text-black opacity-0"> <SpiderIcon className="w-full h-full drop-shadow-2xl" /> </div>
+        <div ref={spider3Ref} className="absolute top-1/2 left-1/2 w-16 h-16 -ml-8 -mt-8 text-black opacity-0"> <SpiderIcon className="w-full h-full drop-shadow-2xl" /> </div>
       </div>
 
-      {/* 4. HOME CONTENT (Name + Menu) */}
+      {/* 4. HOME CONTENT */}
       <div 
         ref={homeContentRef}
-        className={`absolute inset-0 z-20 flex flex-col items-center justify-center transition-opacity duration-300 ${activeView === 'home' ? 'pointer-events-auto' : 'pointer-events-none'}`}
+        className={`absolute inset-0 z-30 flex flex-col items-center justify-center transition-opacity duration-300 ${activeView === 'home' ? 'pointer-events-auto' : 'pointer-events-none'}`}
       >
         <button 
           ref={initialsRef} 
           onClick={handleStart}
           className="group relative cursor-pointer outline-none mb-16"
         >
-          <h1 className="text-5xl md:text-8xl font-bold text-white font-raimi italic tracking-tighter select-none transition-transform duration-300 group-hover:scale-105 drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
+          <h1 className="text-5xl md:text-8xl font-bold text-black font-raimi italic tracking-tighter select-none transition-transform duration-300 group-hover:scale-105 drop-shadow-[0_4px_10px_rgba(255,255,255,0.3)]">
             ARNAV SHARMA
           </h1>
           <p className={`absolute -bottom-12 w-full text-center text-white/80 text-sm tracking-widest opacity-0 group-hover:opacity-100 transition-opacity font-bold ${introFinished ? 'hidden' : 'block'}`}>
@@ -268,7 +306,7 @@ const WebHero = () => {
         <NavMenu show={introFinished} onNavigate={handleNavigate} />
       </div>
 
-      {/* 5. CONTENT VIEWS (Overlays) */}
+      {/* 5. CONTENT VIEWS */}
       {activeView === 'about' && (
         <AboutMe onBack={handleBackToHome} />
       )}
