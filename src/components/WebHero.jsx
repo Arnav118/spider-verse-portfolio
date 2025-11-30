@@ -3,13 +3,15 @@ import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import NavMenu from './NavMenu';
 import AboutMe from './AboutMe';
-import Contact from './Contact'; // Ensure this is imported if you created it earlier
+import Projects from './Projects'; // Added this back to ensure projects work
+import Contact from './Contact';
 
-// IMPORT YOUR IMAGE
+// IMPORT ASSETS
 import spiderBg2 from '../assets/images/spiderbg2.jpg'; 
 import venomBg from '../assets/images/venom-bg.jpg'; 
+import venomVideo from '../assets/videos/venom.mp4'; 
 
-// --- 1. SPIDER ASSET (Static Legs) ---
+// --- 1. SPIDER ASSET ---
 const SpiderIcon = ({ className }) => (
   <div className={className}>
     <svg viewBox="0 0 100 100" fill="currentColor" className="w-full h-full drop-shadow-2xl">
@@ -31,7 +33,7 @@ const SpiderIcon = ({ className }) => (
   </div>
 );
 
-// --- 2. BACKGROUND LOGO (Watermark) ---
+// --- 2. BACKGROUND LOGO ---
 const BackgroundLogo = ({ isVenom }) => (
   <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
     <svg 
@@ -57,7 +59,7 @@ const BackgroundLogo = ({ isVenom }) => (
   </div>
 );
 
-// --- 3. MAIN COMPONENT ---
+// --- 3. MAIN CONTROLLER ---
 const WebHero = () => {
   const containerRef = useRef(null);
   const initialsRef = useRef(null);
@@ -87,45 +89,9 @@ const WebHero = () => {
   const { contextSafe } = useGSAP({ scope: containerRef });
   const webState = useRef({ endX: window.innerWidth / 2, endY: -100, controlY: -100, spread: 0 });
 
-  // --- SPIDER AI ---
-  const scurrySpider = (target) => {
-    if (!target) return;
-    const screenW = window.innerWidth;
-    const screenH = window.innerHeight;
-    
-    // Pick random spot
-    const endX = Math.random() * screenW;
-    const endY = Math.random() * screenH;
-    
-    const currentX = gsap.getProperty(target, "x") || 0;
-    const currentY = gsap.getProperty(target, "y") || 0;
-    const angle = Math.atan2(endY - currentY, endX - currentX) * 180 / Math.PI;
-
-    // Movement Sequence
-    const tl = gsap.timeline({ onComplete: () => scurrySpider(target) });
-
-    // 1. Rotate
-    tl.to(target, { rotation: angle + 90, duration: 0.4, ease: "back.out(1.2)" });
-    
-    // 2. Run
-    const dist = Math.sqrt(Math.pow(endX - currentX, 2) + Math.pow(endY - currentY, 2));
-    const speed = dist / 200; 
-    tl.to(target, { x: endX, y: endY, duration: speed, ease: "power1.inOut" });
-    
-    // 3. Pause
-    tl.to(target, { duration: Math.random() * 2 + 0.5 });
-  };
-
-  // --- INITIALIZE SPIDERS ---
+  // --- START SPIDERS ---
   useGSAP(() => {
-    // Fade them in
-    gsap.to([spider1Ref.current, spider2Ref.current, spider3Ref.current], {
-      opacity: 0.6,
-      duration: 1,
-      stagger: 0.2
-    });
-
-    // Start crawling immediately
+    gsap.to([spider1Ref.current, spider2Ref.current, spider3Ref.current], { opacity: 0.6, duration: 1, stagger: 0.2 });
     scurrySpider(spider1Ref.current);
     scurrySpider(spider2Ref.current);
     scurrySpider(spider3Ref.current);
@@ -168,23 +134,35 @@ const WebHero = () => {
     }
   };
 
-  // --- START SEQUENCE ---
+  const scurrySpider = (target) => {
+    if (!target) return;
+    const screenW = window.innerWidth;
+    const screenH = window.innerHeight;
+    const endX = Math.random() * screenW;
+    const endY = Math.random() * screenH;
+    const currentX = gsap.getProperty(target, "x") || 0;
+    const currentY = gsap.getProperty(target, "y") || 0;
+    const angle = Math.atan2(endY - currentY, endX - currentX) * 180 / Math.PI;
+    const tl = gsap.timeline({ onComplete: () => scurrySpider(target) });
+    tl.to(target, { rotation: angle + 90, duration: 0.4, ease: "back.out(1.2)" });
+    const dist = Math.sqrt(Math.pow(endX - currentX, 2) + Math.pow(endY - currentY, 2));
+    const speed = dist / 200; 
+    tl.to(target, { x: endX, y: endY, duration: speed, ease: "power1.inOut" });
+    tl.to(target, { duration: Math.random() * 2 + 0.5 });
+  };
+
   const handleStart = contextSafe(() => {
     const tl = gsap.timeline({ onUpdate: renderWeb, onComplete: () => setIntroFinished(true) });
     const screenH = window.innerHeight;
-
-    // Web Animation
     tl.to(webState.current, { endY: screenH / 2, controlY: screenH / 4, spread: 0, duration: 0.15, ease: "power1.in" });
     tl.to(webState.current, { spread: 1.8, duration: 0.1, ease: "elastic.out(1, 0.5)" });
-
     const headerY = -screenH / 2 + 100; 
     tl.to(initialsRef.current, { y: headerY, scale: 0.6, duration: 0.6, ease: "back.inOut(0.8)" }, "+=0.05");
     tl.to(webState.current, { endY: headerY, controlY: headerY / 2, spread: 0.5, duration: 0.6, ease: "back.inOut(0.8)" }, "<");
   });
 
-  // --- NAVIGATION ---
   const handleNavigate = contextSafe((viewId) => {
-    if (viewId === 'about' || viewId === 'contact') {
+    if (['about', 'contact', 'projects'].includes(viewId)) {
       gsap.to(homeContentRef.current, { y: "-100vh", opacity: 0, duration: 0.8, ease: "power3.in", onComplete: () => setActiveView(viewId) });
     }
   });
@@ -193,21 +171,6 @@ const WebHero = () => {
     setActiveView('home');
     gsap.fromTo(homeContentRef.current, { y: "-100vh", opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power2.out", delay: 0.2 });
   });
-
-  // SCROLL LISTENER
-  useEffect(() => {
-    let lastScrollTime = 0;
-    const handleWheel = (e) => {
-      const now = Date.now();
-      if (now - lastScrollTime < 1000) return;
-      if (introFinished && activeView === 'home' && e.deltaY > 50) {
-        lastScrollTime = now;
-        handleNavigate('about');
-      }
-    };
-    window.addEventListener('wheel', handleWheel);
-    return () => window.removeEventListener('wheel', handleWheel);
-  }, [introFinished, activeView]);
 
   useEffect(() => {
     const handleResize = () => { webState.current.endX = window.innerWidth / 2; if (!introFinished) renderWeb(); };
@@ -221,21 +184,37 @@ const WebHero = () => {
       {/* 1. SPIDER-MAN BACKGROUND (BASE LAYER) */}
       <img src={spiderBg2} alt="Spidey Background" className="absolute inset-0 w-full h-full object-cover opacity-60 z-0 transition-opacity duration-1000" />
       
-      {/* 2. VENOM BACKGROUND (OVERLAY) */}
+      {/* 2. VENOM BACKGROUND IMAGE (STATIC TEXTURE) */}
       <img 
         src={venomBg} 
-        alt="Venom Background" 
+        alt="Venom Texture" 
         className={`absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-1000 ${activeView === 'contact' ? 'opacity-100' : 'opacity-0'}`} 
       />
 
-      {/* 3. GRADIENTS */}
+      {/* 3. VENOM VIDEO (MOTION OVERLAY) */}
+      <div className={`absolute inset-0 z-0 transition-opacity duration-1000 ${activeView === 'contact' ? 'opacity-100' : 'opacity-0'}`}>
+        <video 
+          autoPlay 
+          loop 
+          muted 
+          playsInline
+          // mix-blend-lighten makes it blend with the image behind it
+          className="w-full h-full object-cover mix-blend-lighten opacity-80" 
+        >
+          <source src={venomVideo} type="video/mp4" />
+        </video>
+        {/* Dark overlay to ensure text pops */}
+        <div className="absolute inset-0 bg-black/30" />
+      </div>
+
+      {/* 4. GRADIENTS */}
       <div className={`absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-black/80 z-0 transition-opacity duration-1000 ${activeView === 'contact' ? 'opacity-0' : 'opacity-100'}`} />
       <div className={`absolute inset-0 bg-gradient-to-b from-black/90 via-purple-900/20 to-black/90 z-0 transition-opacity duration-1000 ${activeView === 'contact' ? 'opacity-100' : 'opacity-0'}`} />
 
-      {/* 4. BACKGROUND LOGO */}
+      {/* 5. BACKGROUND LOGO */}
       <BackgroundLogo isVenom={activeView === 'contact'} />
 
-      {/* 5. INTERACTIVE WEB */}
+      {/* 6. INTERACTIVE WEB */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-10 overflow-visible">
         <defs>
           <filter id="sticky-rope">
@@ -252,14 +231,14 @@ const WebHero = () => {
         </g>
       </svg>
 
-      {/* 6. SPIDERS (Z-20) */}
+      {/* 7. SPIDERS */}
       <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
         <div ref={spider1Ref} className={`absolute w-20 h-20 transition-colors duration-1000 ${activeView === 'contact' ? 'text-white opacity-80' : 'text-black opacity-0'}`}> <SpiderIcon className="w-full h-full drop-shadow-2xl" /> </div>
         <div ref={spider2Ref} className={`absolute w-24 h-24 transition-colors duration-1000 ${activeView === 'contact' ? 'text-white opacity-80' : 'text-black opacity-0'}`}> <SpiderIcon className="w-full h-full drop-shadow-2xl" /> </div>
         <div ref={spider3Ref} className={`absolute w-16 h-16 transition-colors duration-1000 ${activeView === 'contact' ? 'text-white opacity-80' : 'text-black opacity-0'}`}> <SpiderIcon className="w-full h-full drop-shadow-2xl" /> </div>
       </div>
 
-      {/* 7. HOME CONTENT */}
+      {/* 8. HOME CONTENT */}
       <div ref={homeContentRef} className={`absolute inset-0 z-30 flex flex-col items-center justify-center transition-opacity duration-300 ${activeView === 'home' ? 'pointer-events-auto' : 'pointer-events-none'}`}>
         <button ref={initialsRef} onClick={handleStart} className="group relative cursor-pointer outline-none mb-16">
           <h1 className="text-5xl md:text-8xl font-bold text-black font-raimi italic tracking-tighter select-none transition-transform duration-300 group-hover:scale-105 drop-shadow-[0_4px_10px_rgba(255,255,255,0.3)]">
@@ -272,8 +251,9 @@ const WebHero = () => {
         <NavMenu show={introFinished} onNavigate={handleNavigate} />
       </div>
 
-      {/* 8. VIEWS */}
+      {/* 9. VIEWS */}
       {activeView === 'about' && <AboutMe onBack={handleBackToHome} />}
+      {activeView === 'projects' && <Projects onBack={handleBackToHome} />}
       {activeView === 'contact' && <Contact onBack={handleBackToHome} />}
 
     </div>
