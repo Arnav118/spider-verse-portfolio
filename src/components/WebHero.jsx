@@ -242,9 +242,9 @@ const WebHero = () => {
 
       {/* 3. SPIDERS */}
       <div className="absolute inset-0 pointer-events-none z-40 overflow-hidden">
-        <div ref={spider1Ref} className="absolute top-1/2 left-1/2 w-20 h-20 -ml-10 -mt-10 text-black opacity-0"> <SpiderIcon className="w-full h-full drop-shadow-2xl" /> </div>
-        <div ref={spider2Ref} className="absolute top-1/2 left-1/2 w-24 h-24 -ml-12 -mt-12 text-black opacity-0"> <SpiderIcon className="w-full h-full drop-shadow-2xl" /> </div>
-        <div ref={spider3Ref} className="absolute top-1/2 left-1/2 w-16 h-16 -ml-8 -mt-8 text-black opacity-0"> <SpiderIcon className="w-full h-full drop-shadow-2xl" /> </div>
+        <div ref={spider1Ref} className="absolute top-1/2 left-1/2 w-20 h-20 -ml-10 -mt-10 text-black opacity-50"> <SpiderIcon className="w-full h-full drop-shadow-2xl" /> </div>
+        <div ref={spider2Ref} className="absolute top-1/2 left-1/2 w-24 h-24 -ml-12 -mt-12 text-black opacity-50"> <SpiderIcon className="w-full h-full drop-shadow-2xl" /> </div>
+        <div ref={spider3Ref} className="absolute top-1/2 left-1/2 w-16 h-16 -ml-8 -mt-8 text-black opacity-50"> <SpiderIcon className="w-full h-full drop-shadow-2xl" /> </div>
       </div>
 
       {/* 4. HOME CONTENT (Name + Menu) */}
